@@ -94,14 +94,13 @@ app.MapPost("/users/create", async (UserDto userDto, UserDbContext db) =>
 
 
 //update user
-app.MapPut("/users/{id}", async (int id, UserDto inputUserDto, UserDbContext db) =>
+app.MapPut("/users/{id}", async (int id, UserDtoForUpdate inputUserDto, UserDbContext db) =>
 {
     var user = await db.Users.FindAsync(id);
 
     if (user is null) return Results.NotFound(Messages.UserIsNotFound);
 
     
-    user.Id = inputUserDto.Id;
     user.Name = inputUserDto.Name;
     user.Surname = inputUserDto.Surname;
     user.Gender = inputUserDto.Gender;
@@ -109,9 +108,7 @@ app.MapPut("/users/{id}", async (int id, UserDto inputUserDto, UserDbContext db)
     if(inputUserDto.CreatedAt is null){
         user.CreatedAt = user.CreatedAt;
     } else { //12.01.2022 => 12, 01, 2022 => 12 month, 1 day, 2022 year => 0 1 2  
-        List<int> dates = inputUserDto.CreatedAt.Split('.').Select(u=> Convert.ToInt32(u)).ToList();    
-        var updatedDate = new DateTime(dates.ElementAt(0), dates.ElementAt(1), dates.ElementAt(1));
-        user.CreatedAt = updatedDate.ToString("MM.dd.yyyy");
+        user.CreatedAt = inputUserDto.CreatedAt;
     }
 
     await db.SaveChangesAsync();

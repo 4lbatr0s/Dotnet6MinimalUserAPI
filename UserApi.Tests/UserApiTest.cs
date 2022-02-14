@@ -86,6 +86,32 @@ public class UserApiTest
 
     }
 
+    [Fact]
+    public async Task UpdateUsers()
+    {
+        await using var application = new UserApplication();
+        var client = application.CreateClient();
+        var response = await client.PostAsJsonAsync("/users/create", new User{Id=1, Name = "serhat", Surname = "oner", Gender = "male", BirthDate= "15.12.1998",CreatedAt = DateTime.Now.ToString("MM.dd.yyyy")});
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        var users = await client.GetFromJsonAsync<List<User>>("/users");
+        var user = Assert.Single(users);
+        Assert.Equal(1,user.Id);
+        Assert.Equal("serhat",user.Name);
+        Assert.Equal("oner",user.Surname);
+        Assert.Equal("male",user.Gender);
+        Assert.Equal("15.12.1998", user.BirthDate);
+        Assert.Equal(DateTime.Now.ToString("MM.dd.yyyy"), user.CreatedAt);
+        var currentId = user.Id;
+        var responseUpdate = await client.PutAsJsonAsync($"users/{currentId}", new UserDtoForUpdate{Name = "Leonard", Surname = "Cohen", Gender = "Supermale", BirthDate = "12.01.1938", CreatedAt = "12.02.2022"});
+        var updatedUser = await client.GetFromJsonAsync<User>($"/users/{currentId}");
+        Assert.Equal("Leonard",updatedUser.Name);
+        Assert.Equal("Cohen",updatedUser.Surname);
+        Assert.Equal("Supermale",updatedUser.Gender);
+        Assert.Equal("12.01.1938", updatedUser.BirthDate);
+        Assert.Equal("12.02.2022", updatedUser.CreatedAt);
+
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+    }
     //be able to delete a user.
     [Fact]
     public async Task DeleteUsers()
